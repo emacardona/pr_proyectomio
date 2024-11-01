@@ -63,6 +63,8 @@ public class VentasDAO {
    public void agregarVentaYDetalles(Venta venta, List<Ventadetalle> detalles) throws SQLException {
     PreparedStatement parametroVenta = null;
     PreparedStatement parametroDetalle = null;
+    PreparedStatement parametroProducto = null;
+    PreparedStatement parametroExistencia = null;
 
     try {
         cn = new Conexion(); 
@@ -80,7 +82,6 @@ public class VentasDAO {
         parametroVenta.setInt(5, venta.getId_empleado());
         parametroVenta.setString(6, venta.getFecha_ingreso());
 
-        
         int filasAfectadas = parametroVenta.executeUpdate();
         if (filasAfectadas == 0) {
             throw new SQLException("No se pudo insertar la venta.");
@@ -94,10 +95,10 @@ public class VentasDAO {
         }
 
         if (detalles.isEmpty()) {
-                System.out.println("No se encontraron detalles para insertar.");
-                cn.conexionBD.rollback();
-                return;
-            }
+            System.out.println("No se encontraron detalles para insertar.");
+            cn.conexionBD.rollback();
+            return;
+        }
         
         // 2. Insertar en la tabla ventas_detalle
         String queryDetalle = "INSERT INTO ventas_detalle (id_Venta, id_Producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
@@ -109,15 +110,42 @@ public class VentasDAO {
                                ", Cantidad: " + detalle.getCantidad() + 
                                ", Precio Unitario: " + detalle.getPrecio_unitario());
 
+            // Verificar existencia del producto
+            String queryExistencia = "SELECT existencia FROM productos WHERE id_producto = ?";
+            parametroExistencia = cn.conexionBD.prepareStatement(queryExistencia);
+            parametroExistencia.setInt(1, detalle.getId_producto());
+            ResultSet rsExistencia = parametroExistencia.executeQuery();
+
+            if (rsExistencia.next()) {
+                int existenciaActual = rsExistencia.getInt("existencia");
+                if (existenciaActual < detalle.getCantidad()) {
+                    throw new SQLException("No hay suficientes existencias para el producto con ID: " + detalle.getId_producto());
+                }
+            } else {
+                throw new SQLException("Producto no encontrado con ID: " + detalle.getId_producto());
+            }
+
+            // Insertar detalle de la venta
             parametroDetalle.setInt(1, idNuevaVenta);
             parametroDetalle.setInt(2, detalle.getId_producto());
             parametroDetalle.setInt(3, detalle.getCantidad());
             parametroDetalle.setDouble(4, detalle.getPrecio_unitario());
 
-
             int filasDetallesAfectadas = parametroDetalle.executeUpdate();
             if (filasDetallesAfectadas == 0) {
                 throw new SQLException("No se pudo insertar el detalle de la venta.");
+            }
+
+            // 3. Actualizar el saldo del producto
+            String queryProducto = "UPDATE productos SET existencia = existencia - ? WHERE id_producto = ?";
+            parametroProducto = cn.conexionBD.prepareStatement(queryProducto);
+            
+            parametroProducto.setInt(1, detalle.getCantidad()); // Disminuir existencia
+            parametroProducto.setInt(2, detalle.getId_producto()); // ID del producto
+
+            int filasProductoAfectadas = parametroProducto.executeUpdate();
+            if (filasProductoAfectadas == 0) {
+                throw new SQLException("No se pudo actualizar la existencia del producto con ID: " + detalle.getId_producto());
             }
         }
 
@@ -135,6 +163,12 @@ public class VentasDAO {
            }
            if (parametroDetalle != null) {
                parametroDetalle.close();
+           }
+           if (parametroProducto != null) {
+               parametroProducto.close();
+           }
+           if (parametroExistencia != null) {
+               parametroExistencia.close();
            }
            if (cn != null) {
                cn.cerrar_conexion(); 

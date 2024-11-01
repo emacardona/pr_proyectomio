@@ -35,7 +35,7 @@ public class sr_ventas extends HttpServlet {
     }
            
         
-        private void handleNuevaVenta(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
+    private void handleNuevaVenta(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
     String action = request.getParameter("btn_agregar") != null ? "agregar" :
                     request.getParameter("btn_modificar") != null ? "actualizar" :
                     request.getParameter("btn_eliminar") != null ? "eliminar" : null;
@@ -118,6 +118,8 @@ public class sr_ventas extends HttpServlet {
 	}
 }
      
+    
+    
          @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

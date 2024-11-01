@@ -68,7 +68,13 @@
             Cliente cliente = new Cliente();
             DefaultTableModel tablaCliente = cliente.leer();
             for (int t = 0; t < tablaCliente.getRowCount(); t++) {
-                out.println("<option value='" + tablaCliente.getValueAt(t, 0) + "'>" + tablaCliente.getValueAt(t, 1) + "</option>");
+                // Suponiendo que la columna 0 es el ID, la columna 1 es el nombre y la columna 2 es el apellido
+                String idCliente = tablaCliente.getValueAt(t, 0).toString();
+                String nombresCliente = tablaCliente.getValueAt(t, 1).toString();
+                String nitCliente = tablaCliente.getValueAt(t, 3).toString();
+                
+                // Concatenamos los nombres y apellidos para mostrar en el combo box
+                out.println("<option value='" + idCliente + "'> " + nombresCliente + "  - Nit: " + nitCliente + "</option>");
             }
         %>
     </select>
@@ -102,7 +108,7 @@
 
 <!-- Botón para agregar productos -->
 <button type="button" class="btn btn-primary mt-3 custom-button" onclick="agregarProducto()">Agregar Producto</button>
-
+<br>
 <template id="productoTemplate">
     <div class="row mb-3 producto-row">
         <div class="col-md-4">
@@ -129,35 +135,42 @@
         </div>
 
         <div class="col-md-2 d-flex align-items-end">
-            <button type='button' class='btn btn-danger btn-sm mt-4 custom-button' onclick='eliminarProducto(this)'>Eliminar Producto</button>
+            <button type='button' class='btn btn-danger btn-sm mt-4 custom-button' onclick='eliminarProducto(this)'>Eliminar product</button>
+            </div>
+            <div class="col-md-12 mt-2">
+            <label for='existencia'><b>Existencias:</b></label> <a href="Producto.jsp">Ir a mantenimiento de Productos</a>
+            <span class="existencia-producto" id="existencia_producto"></span> <!-- Campo para mostrar existencias -->
         </div>
     </div>
-</template>
+        </template>
+            
+            
 
 <!-- JavaScript para agregar y eliminar productos -->
-<script>
-function agregarProducto() {
-    const contenedorProductos = document.getElementById("detalles_productos");
-    const template = document.getElementById("productoTemplate").content.cloneNode(true);
-    contenedorProductos.appendChild(template);
-}
+            <script>
+            function agregarProducto() {
+                const contenedorProductos = document.getElementById("detalles_productos");
+                const template = document.getElementById("productoTemplate").content.cloneNode(true);
+                contenedorProductos.appendChild(template);
+            }
 
-function eliminarProducto(button) {
-    const fila = button.closest(".producto-row");
-    fila.remove();
-}
-</script>
+            function eliminarProducto(button) {
+                const fila = button.closest(".producto-row");
+                fila.remove();
+            }
+            </script>
 
                 
             <br>
             <button name="btn_agregar" id="btn_agregar" value="agregar" class="btn btn-primary">Agregar</button>
             <button name="btn_modificar" id="btn_modificar" value="modificar" class="btn btn-success">Modificar</button>
             <button name="btn_eliminar" id="btn_eliminar" value="eliminar" class="btn btn-danger"  onclick="javascript:if(!confirm('¿Desea Eliminar?'))return false">Eliminar</button>        
+            <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>  
             </div>
             </form>
             </div>
             
-            <button type="button" class="btn btn-dark" data-dismiss="modal">Cerrar</button>  
+            
             </div>
             </div>
             </div>
@@ -243,6 +256,8 @@ function eliminarProducto(button) {
             cantidad = target.find("td").eq(8).html();
             precio_unitario = target.find("td").eq(9).html();
             fecha_ingreso = target.find("td").eq(10).html();
+            $("#detalles_productos").empty();
+            agregarProducto();
             
 
             $("#txt_id_venta").val(id_venta);
