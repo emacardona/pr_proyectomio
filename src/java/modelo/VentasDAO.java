@@ -60,7 +60,7 @@ public class VentasDAO {
     }
 }
     
-   public void agregarVentaYDetalles(Venta venta, List<Ventadetalle> detalles) throws SQLException {
+    public void agregarVentaYDetalles(Venta venta, List<Ventadetalle> detalles) throws SQLException {
     PreparedStatement parametroVenta = null;
     PreparedStatement parametroDetalle = null;
     PreparedStatement parametroProducto = null;
@@ -119,9 +119,11 @@ public class VentasDAO {
             if (rsExistencia.next()) {
                 int existenciaActual = rsExistencia.getInt("existencia");
                 if (existenciaActual < detalle.getCantidad()) {
+                    System.out.println("Error: No hay suficientes existencias para el producto con ID: " + detalle.getId_producto());
                     throw new SQLException("No hay suficientes existencias para el producto con ID: " + detalle.getId_producto());
                 }
             } else {
+                System.out.println("Error: Producto no encontrado con ID: " + detalle.getId_producto());
                 throw new SQLException("Producto no encontrado con ID: " + detalle.getId_producto());
             }
 
